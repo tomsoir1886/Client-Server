@@ -21,7 +21,7 @@ public class MainClient {
         Scanner sc = new Scanner(System.in);
         String line = null;
 
-        Client client = new Client();
+        Client client = new Client("127.0.0.1",1111);
         try {
             while (true) {
                 menu();
@@ -29,6 +29,7 @@ public class MainClient {
                 line = line.toLowerCase();
                 int statusClient = client.setCommand(line);
                 if (statusClient == client.CLIENT_EXIT) {
+                    client.wr(line);
                     break;
                 }
                 if (statusClient == client.CLIENT_INPUT) {
@@ -127,7 +128,6 @@ public class MainClient {
                             System.out.println("Error. \nExample: 2017-03-23\nRepeat input");
                         }
                     } while (checkerInput);
-                    System.out.println(input);
                     client.setCommand(input);
                 }
                 if (statusClient == client.CLIENT_ERROR_COMMAND) {

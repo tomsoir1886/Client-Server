@@ -2,8 +2,12 @@ package sources;
 
 import sources.model.User;
 
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.net.Socket;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 import java.util.ArrayList;
@@ -17,6 +21,10 @@ public class Client {
     InetSocketAddress crunchifyAddr;
     SocketChannel crunchifyClient;
 
+    Socket socket;
+    DataInputStream in;
+    DataOutputStream out;
+
     public final int CLIENT_EXIT = 0;
     public final int CLIENT_SEND = 1;
     public final int CLIENT_INPUT = 2;
@@ -24,8 +32,16 @@ public class Client {
     public final int CLIENT_ERROR_COMMAND = 3;
 
 
-    public Client() {
-        crunchifyAddr = new InetSocketAddress("localhost", 1111);
+    public Client(String host, int port) {
+
+        try {
+            socket = new Socket(InetAddress.getByName(host), port);
+            in = new DataInputStream(socket.getInputStream());
+            out = new DataOutputStream(socket.getOutputStream());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        crunchifyAddr = new InetSocketAddress("127.0.0.1", 1111);
         try {
             crunchifyClient = SocketChannel.open(crunchifyAddr);
         } catch (IOException e) {
@@ -34,13 +50,12 @@ public class Client {
     }
 
     public void wr(String line) {
-        ByteBuffer buffer = ByteBuffer.wrap(line.getBytes());
         try {
-            crunchifyClient.write(buffer);
+            out.writeUTF(line);
+            out.flush();
         } catch (IOException e) {
             e.printStackTrace();
         }
-        buffer.clear();
     }
 
     public boolean statusConnect() {
@@ -48,40 +63,38 @@ public class Client {
     }
 
     public String read() {
-        ByteBuffer byteBuffer = ByteBuffer.allocate(4096);
-        int bytesRead = 0;
+        String s = "Error read";
         try {
-            bytesRead = crunchifyClient.read(byteBuffer);
+            s = in.readUTF();
         } catch (IOException e) {
             e.printStackTrace();
         }
-        byteBuffer.flip();
-        byte[] lineBytes = new byte[bytesRead];
-        byteBuffer.get(lineBytes, 0, bytesRead);
-        byteBuffer.clear();
-        return new String(lineBytes);
+        return s;
     }
 
     public void finishConnection() throws IOException {
         crunchifyClient.close();
     }
-    
+
 
     public int setCommand(String command) throws IOException {
         if (command.equals("exit")) {
             currentState = CLIENT_EXIT;
             return CLIENT_EXIT;
-        } else if (command.equals("list") || command.equals("sum") ||
+        }
+        if (command.equals("list") || command.equals("sum") ||
                 command.equals("count") || command.contains("info account") ||
                 command.contains("info depositor") || command.contains("show type") ||
                 command.contains("show bank") || command.contains("delete")) {
             wr(command);
             currentState = CLIENT_SEND;
             return CLIENT_SEND;
-        } else if (command.equals("add")) {
+        }
+        if (command.equals("add")) {
             currentState = CLIENT_INPUT;
             return CLIENT_INPUT;
-        } else if (currentState == CLIENT_INPUT) {
+        }
+        if (currentState == CLIENT_INPUT) {
             wr("add " + new User(0, command).toString());
             currentState = CLIENT_SEND;
             return CLIENT_SEND;

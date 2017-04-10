@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.Date;
 
 /**
- * Created by Tomsoir on 23.03.2017.
+ * Created by HP ProBook on 23.03.2017.
  */
 public class WorkData {
 
