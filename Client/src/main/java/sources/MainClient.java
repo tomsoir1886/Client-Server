@@ -155,7 +155,7 @@ public class MainClient {
     }
 
     public static void menu() {
-        System.out.println("------------— MENU —--------------------");
+        System.out.println("-------------— MENU —--------------------");
         System.out.println("Print line");
         System.out.println("1. list");
         System.out.println("2. sum");
